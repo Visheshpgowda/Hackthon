@@ -1,30 +1,33 @@
 import mongoose,{Schema} from "mongoose";
 
-const userSchema = new Schema({
+const studentSchema = new Schema({
     name:{
         type: String,
         required: true,
         trim: true
     },
-    email: {
+    email:{
         type: String,
         required: true,
         unique: true,
     },
-    Phone_no:{
-        type: String,
+    phone_no:{
+        type: Number,
         required: true,
         unique: true,
     },
-    password:{
+    address:{
         type: String,
         required: true,
     },
-    role:{
-        type: String,
-        enum: ["Headmaster","Teacher","Parent"],
-        default: "user",
+    dob:{
+        type: Date,
+        required: true,
     },
+
+},{
+    timestamps: true
 })
 
-export const User = mongoose.model("User", userSchema)
+
+export const Student = mongoose.model("Student", studentSchema)

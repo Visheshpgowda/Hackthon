@@ -5,14 +5,16 @@ dotenv.config({
     path:"./.env"
 })
 const PORT=process.env.PORT
-
-connectionDB()
-.then(()=>{
-    app.listen(PORT,()=>
-        {
-            console.log(`Server is running on port${PORT}`)
-        })
+app.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`)
 })
-.catch((err)=>{
-    console.log("mongodb connection error");
-})
+// connectionDB()
+// .then(()=>{
+//     app.listen(PORT,()=>
+//         {
+//             console.log(`Server is running on port${PORT}`)
+//         })
+// })
+// .catch((err)=>{
+//     console.log("mongodb connection error");
+// })
