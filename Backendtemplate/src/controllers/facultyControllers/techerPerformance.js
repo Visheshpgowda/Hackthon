@@ -1,6 +1,6 @@
 import { Marks } from "../../models/Marks.models";
 
-export const teacherPerformance = async(req, res) => {
+export const teacherPerformance = async (req, res) => {
     try {
         const teacherId = req.params.teacher;
 
@@ -15,13 +15,12 @@ export const teacherPerformance = async(req, res) => {
         }
 
         // Basic information
-        const teacherName = marks[0] ? .teacher ? .name || "Unknown Teacher";
+        const teacherName = marks[0]?.teacher?.name || "Unknown Teacher";
         const totalEntries = marks.length;
-        const uniqueStudents = new Set(marks.map(m => m.Student_name ? ._id.toString())).size;
+        const uniqueStudents = new Set(marks.map(m => m.Student_name?._id?.toString())).size;
         const uniqueSubjects = [...new Set(marks.map(m => m.subject))];
 
-        // Grade distribution (assuming marks are out of 100)
-        // Define grade ranges
+        // Grade distribution
         const gradeRanges = {
             'A+': { min: 90, max: 100, count: 0 },
             'A': { min: 80, max: 89.99, count: 0 },
@@ -34,7 +33,6 @@ export const teacherPerformance = async(req, res) => {
             'F': { min: 0, max: 49.99, count: 0 }
         };
 
-        // Count grades
         marks.forEach(mark => {
             for (const [grade, range] of Object.entries(gradeRanges)) {
                 if (mark.marks >= range.min && mark.marks <= range.max) {
@@ -44,7 +42,6 @@ export const teacherPerformance = async(req, res) => {
             }
         });
 
-        // Calculate grade percentages
         const gradeDistribution = {};
         Object.entries(gradeRanges).forEach(([grade, range]) => {
             gradeDistribution[grade] = {
@@ -53,41 +50,32 @@ export const teacherPerformance = async(req, res) => {
             };
         });
 
-        // Pass/Fail Statistics (assuming pass mark is 50)
+        // Pass/Fail Statistics
         const passCount = marks.filter(mark => mark.marks >= 50).length;
         const failCount = marks.filter(mark => mark.marks < 50).length;
         const passRate = ((passCount / totalEntries) * 100).toFixed(2);
         const failRate = ((failCount / totalEntries) * 100).toFixed(2);
 
         // Performance categories
-        const excellentCount = marks.filter(mark => mark.marks >= 80).length;
-        const goodCount = marks.filter(mark => mark.marks >= 70 && mark.marks < 80).length;
-        const averageCount = marks.filter(mark => mark.marks >= 60 && mark.marks < 70).length;
-        const belowAverageCount = marks.filter(mark => mark.marks >= 50 && mark.marks < 60).length;
-        const poorCount = marks.filter(mark => mark.marks < 50).length;
-
         const performanceCategories = {
-            excellent: {
-                count: excellentCount,
-                percentage: ((excellentCount / totalEntries) * 100).toFixed(2)
-            },
-            good: {
-                count: goodCount,
-                percentage: ((goodCount / totalEntries) * 100).toFixed(2)
-            },
-            average: {
-                count: averageCount,
-                percentage: ((averageCount / totalEntries) * 100).toFixed(2)
-            },
-            belowAverage: {
-                count: belowAverageCount,
-                percentage: ((belowAverageCount / totalEntries) * 100).toFixed(2)
-            },
-            poor: {
-                count: poorCount,
-                percentage: ((poorCount / totalEntries) * 100).toFixed(2)
-            }
+            excellent: { count: 0, percentage: "0.00" },
+            good: { count: 0, percentage: "0.00" },
+            average: { count: 0, percentage: "0.00" },
+            belowAverage: { count: 0, percentage: "0.00" },
+            poor: { count: 0, percentage: "0.00" }
         };
+
+        marks.forEach(mark => {
+            if (mark.marks >= 80) performanceCategories.excellent.count++;
+            else if (mark.marks >= 70) performanceCategories.good.count++;
+            else if (mark.marks >= 60) performanceCategories.average.count++;
+            else if (mark.marks >= 50) performanceCategories.belowAverage.count++;
+            else performanceCategories.poor.count++;
+        });
+
+        Object.keys(performanceCategories).forEach(key => {
+            performanceCategories[key].percentage = ((performanceCategories[key].count / totalEntries) * 100).toFixed(2);
+        });
 
         // Subject-wise performance
         const subjectPerformance = {};
@@ -98,14 +86,10 @@ export const teacherPerformance = async(req, res) => {
             const lowestMark = Math.min(...subjectMarks.map(mark => mark.marks));
             const subjectPassRate = ((subjectMarks.filter(mark => mark.marks >= 50).length / subjectMarks.length) * 100).toFixed(2);
 
-            // Calculate standard deviation
+            // Standard deviation
             const mean = subjectAvg;
-            const squareDiffs = subjectMarks.map(mark => {
-                const diff = mark.marks - mean;
-                return diff * diff;
-            });
-            const avgSquareDiff = squareDiffs.reduce((sum, diff) => sum + diff, 0) / squareDiffs.length;
-            const stdDev = Math.sqrt(avgSquareDiff).toFixed(2);
+            const squareDiffs = subjectMarks.map(mark => Math.pow(mark.marks - mean, 2));
+            const stdDev = Math.sqrt(squareDiffs.reduce((sum, diff) => sum + diff, 0) / squareDiffs.length).toFixed(2);
 
             subjectPerformance[subject] = {
                 count: subjectMarks.length,
@@ -117,132 +101,70 @@ export const teacherPerformance = async(req, res) => {
             };
         });
 
-        // Exam type comparison (Midterm vs Final)
-        const midtermMarks = marks.filter(mark => mark.Exam_type === 'Midterm');
-        const finalMarks = marks.filter(mark => mark.Exam_type === 'Final');
-
-        const examTypeComparison = {
-            Midterm: {
-                count: midtermMarks.length,
-                averageMark: midtermMarks.length > 0 ?
-                    (midtermMarks.reduce((sum, mark) => sum + mark.marks, 0) / midtermMarks.length).toFixed(2) :
-                    0,
-                passRate: midtermMarks.length > 0 ?
-                    ((midtermMarks.filter(mark => mark.marks >= 50).length / midtermMarks.length) * 100).toFixed(2) :
-                    0
-            },
-            Final: {
-                count: finalMarks.length,
-                averageMark: finalMarks.length > 0 ?
-                    (finalMarks.reduce((sum, mark) => sum + mark.marks, 0) / finalMarks.length).toFixed(2) :
-                    0,
-                passRate: finalMarks.length > 0 ?
-                    ((finalMarks.filter(mark => mark.marks >= 50).length / finalMarks.length) * 100).toFixed(2) :
-                    0
-            }
-        };
+        // Exam type comparison
+        const examTypeComparison = ["Midterm", "Final"].reduce((acc, type) => {
+            const examMarks = marks.filter(mark => mark.Exam_type === type);
+            acc[type] = {
+                count: examMarks.length,
+                averageMark: examMarks.length ? (examMarks.reduce((sum, mark) => sum + mark.marks, 0) / examMarks.length).toFixed(2) : "0.00",
+                passRate: examMarks.length ? ((examMarks.filter(mark => mark.marks >= 50).length / examMarks.length) * 100).toFixed(2) : "0.00"
+            };
+            return acc;
+        }, {});
 
         // Top and bottom performers
         const studentPerformance = {};
         marks.forEach(mark => {
-            const studentId = mark.Student_name ? ._id.toString();
+            const studentId = mark.Student_name?._id?.toString();
             if (!studentPerformance[studentId]) {
                 studentPerformance[studentId] = {
                     studentId,
-                    studentName: mark.Student_name ? .name || `Student (${mark.roll_no})`,
+                    studentName: mark.Student_name?.name || `Student (${mark.roll_no})`,
                     rollNo: mark.roll_no,
-                    marks: [],
                     totalMarks: 0,
                     examCount: 0
                 };
             }
 
-            studentPerformance[studentId].marks.push(mark.marks);
             studentPerformance[studentId].totalMarks += mark.marks;
             studentPerformance[studentId].examCount += 1;
         });
 
-        // Calculate average for each student
-        Object.values(studentPerformance).forEach(student => {
-            student.averageMark = (student.totalMarks / student.examCount).toFixed(2);
-        });
-
-        // Sort students by average mark
         const sortedStudents = Object.values(studentPerformance)
+            .map(student => ({ ...student, averageMark: (student.totalMarks / student.examCount).toFixed(2) }))
             .sort((a, b) => b.averageMark - a.averageMark);
 
         const topPerformers = sortedStudents.slice(0, 5);
         const bottomPerformers = sortedStudents.slice(-5).reverse();
 
-        // Calculate overall statistics
+        // Overall statistics
         const allMarks = marks.map(mark => mark.marks);
         const avgMark = (allMarks.reduce((sum, mark) => sum + mark, 0) / allMarks.length).toFixed(2);
-        const highestMark = Math.max(...allMarks);
-        const lowestMark = Math.min(...allMarks);
         const medianMark = calculateMedian(allMarks);
+        const quartiles = {
+            q1: calculateMedian(allMarks.slice(0, Math.floor(allMarks.length / 2))),
+            q2: medianMark,
+            q3: calculateMedian(allMarks.slice(Math.ceil(allMarks.length / 2))),
+            iqr: (calculateMedian(allMarks.slice(Math.ceil(allMarks.length / 2))) - calculateMedian(allMarks.slice(0, Math.floor(allMarks.length / 2)))).toFixed(2)
+        };
 
-        // Calculate quartiles
-        const sortedMarks = [...allMarks].sort((a, b) => a - b);
-        const q1 = calculateMedian(sortedMarks.slice(0, Math.floor(sortedMarks.length / 2)));
-        const q3 = calculateMedian(sortedMarks.slice(Math.ceil(sortedMarks.length / 2)));
-        const iqr = q3 - q1;
-
-        // Response object with all statistics
-        const response = {
-            teacherInfo: {
-                teacherId,
-                teacherName
-            },
-            overallStats: {
-                totalEntries,
-                uniqueStudents,
-                uniqueSubjects: uniqueSubjects.length,
-                averageMark: avgMark,
-                medianMark,
-                highestMark,
-                lowestMark,
-                passRate,
-                failRate,
-                quartiles: {
-                    q1,
-                    q2: medianMark,
-                    q3,
-                    iqr
-                }
-            },
+        res.status(200).json({
+            teacherInfo: { teacherId, teacherName },
+            overallStats: { totalEntries, uniqueStudents, uniqueSubjects: uniqueSubjects.length, avgMark, medianMark, passRate, failRate, quartiles },
             performanceCategories,
             gradeDistribution,
             subjectPerformance,
             examTypeComparison,
             topPerformers,
-            bottomPerformers,
-            // Include raw data for custom frontend processing if needed
-            rawData: marks.map(mark => ({
-                studentName: mark.Student_name ? .name || 'Unknown',
-                rollNo: mark.roll_no,
-                subject: mark.subject,
-                examType: mark.Exam_type,
-                marks: mark.marks
-            }))
-        };
-
-        res.status(200).json(response);
-    } catch (error) {
-        res.status(500).json({
-            message: "Error analyzing teacher performance",
-            error: error.message
+            bottomPerformers
         });
+    } catch (error) {
+        res.status(500).json({ message: "Error analyzing teacher performance", error: error.message });
     }
 };
 
-// Helper function to calculate median
 function calculateMedian(arr) {
-    const sorted = [...arr].sort((a, b) => a - b);
-    const middle = Math.floor(sorted.length / 2);
-
-    if (sorted.length % 2 === 0) {
-        return ((sorted[middle - 1] + sorted[middle]) / 2).toFixed(2);
-    }
-
-    return sorted[middle].toFixed(2);
+    if (!arr.length) return "0.00";
+    const sorted = arr.sort((a, b) => a - b);
+    return sorted.length % 2 === 0 ? ((sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2).toFixed(2) : sorted[Math.floor(sorted.length / 2)].toFixed(2);
 }

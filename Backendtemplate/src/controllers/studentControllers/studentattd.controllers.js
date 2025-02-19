@@ -50,7 +50,7 @@ export const getMonthlyStudentAttendance = async(req, res) => {
         res.status(200).json({
             month: startDate.toLocaleString('default', { month: 'long' }),
             year: year,
-            studentInfo: attendanceRecords[0] ? .studentId,
+            studentInfo: attendanceRecords[0] ?  attendanceRecords[0].studentId : null,
             stats: stats,
             data: attendanceRecords
         });
@@ -124,7 +124,7 @@ export const getYearlyStudentAttendance = async(req, res) => {
 
         res.status(200).json({
             year: year,
-            studentInfo: attendanceRecords[0] ? .studentId,
+            studentInfo: attendanceRecords[0] ? attendanceRecords[0].studentId:null,
             yearlyTotals: yearlyTotals,
             monthlyStats: monthlyStats,
             data: attendanceRecords
