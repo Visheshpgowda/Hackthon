@@ -1,27 +1,36 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const marksSchema = new Schema({
-    Student_name:{
+    Student_name: {
         type: Schema.Types.ObjectId,
         ref: 'Student',
         required: true
     },
-    subject:{
-        type:String,
-        required:true
+    roll_no: {
+        type: Number,
+        required: true
     },
-    Exam_type:{
-        type:String,
-        enum:['Midterm','Final'],
-        required:true
+    subject: {
+        type: String,
+        required: true
     },
-    marks:{
-        type:Number,
-        required:true
+    Exam_type: {
+        type: String,
+        enum: ['Midterm', 'Final'],
+        required: true
+    },
+    marks: {
+        type: Number,
+        required: true
+    },
+    teacher: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
-},{
-    timestamps:true
+}, {
+    timestamps: true
 });
 
 
-export const marksModel=mongoose.model('Marks',marksSchema);
+export const Marks = mongoose.model('Marks', marksSchema);

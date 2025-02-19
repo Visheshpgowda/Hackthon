@@ -1,21 +1,21 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const facultyAttendanceSchema = new Schema({
     facultyId: {
         type: Schema.Types.ObjectId,
-        ref:'User',
+        ref: 'User',
         required: true
-        },
+    },
     date: {
         type: Date,
         required: true
     },
     status: {
         type: String,
-        enum: ['Present', 'Absent'],
+        enum: ['present', 'absent'],
         required: true
     }
-},{
+}, {
     timestamps: true
 });
 
