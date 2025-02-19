@@ -1,31 +1,36 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const studentSchema = new Schema({
-    name:{
+    name: {
         type: String,
         required: true,
         trim: true
     },
-    email:{
-        type: String,
-        required: true,
-        unique: true,
-    },
-    phone_no:{
+    roll_no: {
         type: Number,
         required: true,
         unique: true,
     },
-    address:{
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    phone_no: {
+        type: Number,
+        required: true,
+        unique: true,
+    },
+    address: {
         type: String,
         required: true,
     },
-    dob:{
+    dob: {
         type: Date,
         required: true,
     },
 
-},{
+}, {
     timestamps: true
 })
 
