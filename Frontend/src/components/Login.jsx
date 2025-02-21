@@ -17,7 +17,14 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8080//api/v1/user/login', { email, name, password }, { withCredentials: true });
+            const response = await axios.post('http://localhost:8080/api/v1/users/login', { email, name, password }, { withCredentials: true
+
+             },{
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+             }
+             );
             
             setSuccess(response.data.message || "Logged in successfully!");
             console.log("User Data:", response.data.data.user);
