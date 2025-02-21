@@ -1,4 +1,6 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
+
+const { Schema, model } = mongoose;
 
 const subjectSchema = new Schema({
     Subject_name: {
@@ -12,4 +14,6 @@ const subjectSchema = new Schema({
     }],
 });
 
-module.exports = mongoose.model('Subject', subjectSchema);
+const Subject = model('Subject', subjectSchema);
+
+export default Subject;
