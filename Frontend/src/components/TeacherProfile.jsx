@@ -9,7 +9,7 @@ function TeacherProfile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/v1/users/profile", {
+        const response = await axios.get("http://localhost:8080/api/v1/users/getProfile", {
           withCredentials: true, // ensures cookies are sent
         });
         // Assuming response.data.data.user holds the teacher's info
