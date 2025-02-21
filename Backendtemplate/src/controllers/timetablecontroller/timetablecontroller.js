@@ -1,37 +1,36 @@
-import { Timetable } from '../../models/Timetable.models.js';
+import Timetable from '../../models/timetable.models.js';
 import { User } from '../../models/user.models.js';
 
 // Fetch timetable
-export const getTimetable = async (req, res) => {
+
+export const addTimetable = async (req, res) => {
     try {
-        const timetable = await Timetable.find().populate('periods.teacher').populate('periods.substitute');
-        res.json(timetable);
+        const { className, day, periods } = req.body;
+        
+        // Ensure each timetable entry includes a className, day, and periods
+        if (!className || !day || !periods || periods.length !== 6) {
+            return res.status(400).json({ error: "Invalid input. Ensure className, day, and exactly 6 periods are provided." });
+        }
+
+        // Create a new timetable entry
+        const timetable = new Timetable({ className, day, periods });
+
+        // Save to the database
+        await timetable.save();
+
+        res.status(201).json({ message: 'Timetable added successfully', timetable });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching timetable', error });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Find available teachers for substitution
-export const getAvailableTeachers = async (req, res) => {
-    const { day, period, subject } = req.body;
 
+export const getTimetable = async (req, res) => {
     try {
-        // Find teachers not scheduled in the given period
-        const busyTeachers = await Timetable.findOne({ day, 'periods.periodNumber': period })
-            .select('periods.teacher')
-            .lean();
-
-        const busyTeacherIds = busyTeachers?.periods.map(p => p.teacher) || [];
-
-        // Find teachers who are not busy and can teach the subject
-        const availableTeachers = await User.find({
-            role: 'Teacher',
-            _id: { $nin: busyTeacherIds }
-        });
-
-        res.json(availableTeachers);
+        const timetable = await Timetable.find().populate('periods.teacher', 'name email');
+        res.json(timetable);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching available teachers', error });
+        res.status(500).json({ error: error.message });
     }
 };
 

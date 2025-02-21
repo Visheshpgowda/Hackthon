@@ -1,21 +1,18 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-const timetableSchema = new Schema({
-    day: {
-        type: String,
-        enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        required: true
-    },
-    periods: [
-        {
-            periodNumber: { type: Number, required: true },
-            subject: { type: String, required: true },
-            class: { type: String, required: true },
-            teacher: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-            isSubstituted: { type: Boolean, default: false },
-            substitute: { type: Schema.Types.ObjectId, ref: 'User', default: null }
-        }
-    ]
+const PeriodSchema = new mongoose.Schema({
+    periodNumber: { type: Number, required: true },
+    time: { type: String, required: true },
+    subject: { type: String, required: true },
+    class: { type: String, required: true },
+    teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    isSubstituted: { type: Boolean, default: false },
+    substituteTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 });
 
-export const Timetable = mongoose.model('Timetable', timetableSchema);
+const TimetableSchema = new mongoose.Schema({
+    day: { type: String, required: true },
+    periods: [PeriodSchema]
+});
+
+export default mongoose.model('Timetable', TimetableSchema);
