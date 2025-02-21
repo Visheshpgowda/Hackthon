@@ -18,6 +18,9 @@ const marksSchema = new Schema({
     marks: {
         type: Number,
         required: true
+    },class: {
+        type: String,
+            required: true,
     },
     teacher: {
         type: Schema.Types.ObjectId,
