@@ -12,4 +12,6 @@ const studentEnrolledSubjectsSchema = new Schema({
     }],
 });
 
-export const studentEnrolledSubjects = mongoose.model("studentEnrolledSubjects", studentEnrolledSubjects)
+const studentEnrolledSubjects = mongoose.model("studentEnrolledSubjects", studentEnrolledSubjectsSchema);
+
+export default studentEnrolledSubjects;

@@ -1,15 +1,56 @@
 import { Marks } from "../../models/Marks.models.js";
-
-export const addMarks = async(req, res) => {
+export const addMarks = async (req, res) => {
     try {
-        const { roll_no, Subject_name, Exam_type, marks, teacher } = req.body;
-        const marksData = new Marks({ roll_no, Subject_name, Exam_type, marks, teacher });
-        await marksData.save();
-        res.status(201).json({ marksData });
+      const { studentId, roll_no, subjectName, Exam_type: examType, marks, class: className } = req.body;
+      
+      const teacherId = req.user._id;
+        console.log(studentId, roll_no, subjectName, examType, marks, className, teacherId);
+      console.log(req.body);
+
+        
+      // Validate required fields
+      if (!studentId || !roll_no || !subjectName || !examType || !marks || !className) {
+        return res.status(400).json({
+          success: false,
+          message: 'All fields are required'
+        });
+      }
+  
+      // Validate marks range
+      if (marks < 0 || marks > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Marks must be between 0 and 100'
+        });
+      }
+  
+      // Create new marks entry
+      const marksEntry = new Marks({
+        studentId,
+        roll_no,
+        subjectName,
+        examType,
+        marks,
+        class: className,
+        teacherId
+      });
+  
+      await marksEntry.save();
+  
+      res.status(201).json({
+        success: true,
+        message: 'Marks added successfully',
+        data: marksEntry
+      });
+  
     } catch (error) {
-        res.status(409).json({ message: error.message });
+      console.error('Error in addMarks:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Error while adding marks'
+      });
     }
-}
+  };
 
 export const getMarksByRollNo = async(req, res) => {
     try {
