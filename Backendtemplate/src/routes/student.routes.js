@@ -5,6 +5,7 @@ import { getStudentListByClass } from '../controllers/studentControllers/student
 import { verifyJWT } from '../middlewares/auth.middlewares.js';
 import { getEnrolledSubjects } from '../controllers/studentControllers/studentListByClass.controllers.js';
 import Subject from '../models/Subject.models.js'; 
+import { addStudentAttendance } from '../controllers/studentControllers/studentattd.controllers.js';
 const router = express.Router();
 
 
@@ -24,4 +25,7 @@ router.get('/subjects', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+router.post('/addMarks', addMarks);
+router.post("/getstudents",getStudentListByClass)
+router.post("/addattendance",addStudentAttendance)
 export default router;

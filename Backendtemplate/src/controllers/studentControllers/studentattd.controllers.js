@@ -1,15 +1,28 @@
-import StudentAttendance from '../../models/Studentattd.models';
+import {StudentAttendance} from '../../models/Studentattd.models.js';
 
-export const addStudentAttendance = async(req, res) => {
+export const addStudentAttendance = async (req, res) => {
     try {
-        const { studentId, date, status } = req.body;
-        const studentAttendance = new StudentAttendance({ studentId, date, status });
-        await studentAttendance.save();
-        res.status(201).json({ studentAttendance });
+        console.log(req.body);
+        const { classId, attendance } = req.body;  // Receive classId and attendance array
+
+        if (!attendance || !Array.isArray(attendance)) {
+            return res.status(400).json({ message: "Invalid attendance data" });
+        }
+
+        const attendanceRecords = attendance.map(({ studentId, date, isPresent }) => ({
+            studentId,
+            date,
+            status: isPresent, // Ensuring consistent field naming
+        }));
+
+        await StudentAttendance.insertMany(attendanceRecords);
+
+        res.status(201).json({ message: "Attendance recorded successfully", attendance: attendanceRecords });
     } catch (error) {
-        res.status(409).json({ message: error.message });
+        res.status(500).json({ message: "Error saving attendance", error: error.message });
     }
-}
+};
+
 
 export const getMonthlyStudentAttendance = async(req, res) => {
     try {

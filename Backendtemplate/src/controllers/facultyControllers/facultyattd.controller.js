@@ -1,8 +1,27 @@
-import { FacultyAttendance } from "../../models/Facultyattd.models";
+import { FacultyAttendance } from "../../models/Facultyattd.models.js";
+import { User } from "../../models/user.models.js";
 
+export const getfaculty= async(req, res) => {
+    try {
+        const faculty = await User.find({ role: 'Teacher' });
+        res.status(200).json({ faculty });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
 export const AddfacultyAttendance = async(req, res) => {
     try {
         const { facultyId, date, status } = req.body;
+        if(!facultyId || !date || !status) {
+            return res.status(400).json({ message: "Faculty ID, date, and status are required" });
+        }   
+        const faculty = await FacultyAttendance.findOne({ facultyId, date });
+        if(faculty) {
+            const updatedFaculty = await FacultyAttendance.findOneAndUpdate({ facultyId, date }, { status
+            }, { new: true });
+            return res.status(200).json({ faculty: updatedFaculty });
+        }   
+        
         const facultyAttendance = new FacultyAttendance({ facultyId, date, status });
         await facultyAttendance.save();
         res.status(201).json({ facultyAttendance });

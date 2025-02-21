@@ -1,0 +1,267 @@
+/* teacherattd.css */
+.attendance-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(145deg, #f6f9ff, #e8f0ff);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(51, 94, 255, 0.1);
+  font-family: 'Poppins', sans-serif;
+}
+
+.attendance-title {
+  color: #3a4374;
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.class-selection {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.class-dropdown {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #e0e6ff;
+  background-color: #f8faff;
+  font-size: 1rem;
+  color: #3a4374;
+  transition: all 0.3s ease;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.class-dropdown:focus {
+  border-color: #6977ff;
+  box-shadow: 0 0 0 3px rgba(105, 119, 255, 0.2);
+}
+
+.get-students-btn {
+  padding: 12px 24px;
+  background-color: #6977ff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(105, 119, 255, 0.2);
+}
+
+.get-students-btn:hover {
+  background-color: #5666ff;
+  box-shadow: 0 6px 16px rgba(105, 119, 255, 0.3);
+}
+
+.get-students-btn:disabled {
+  background-color: #c4c9ff;
+  cursor: not-allowed;
+}
+
+.attendance-section {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+  color: #3a4374;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.student-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 2rem;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  background-color: #f8faff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #3a4374;
+  font-size: 1.05rem;
+}
+
+.student-roll {
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.attendance-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.attendance-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  background-color: #f56565; /* Red for absent (default) */
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .toggle-slider {
+  background-color: #48bb78; /* Green for present */
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.status-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 60px;
+  color: #f56565; /* Red for absent (default) */
+  transition: color 0.3s ease;
+}
+
+input:checked ~ .status-text {
+  color: #48bb78; /* Green for present */
+}
+
+.submit-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background-color: #4c63ff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 99, 255, 0.2);
+}
+
+.submit-btn:hover {
+  background-color: #3b52ff;
+  box-shadow: 0 6px 16px rgba(76, 99, 255, 0.3);
+}
+
+.submit-btn:disabled {
+  background-color: #c4c9ff;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(76, 99, 255, 0.2);
+  border-radius: 50%;
+  border-top-color: #4c63ff;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.success-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #48bb78;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 10px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .attendance-container {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .attendance-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .class-selection {
+    flex-direction: column;
+  }
+  
+  .student-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  
+  .attendance-toggle {
+    align-self: flex-end;
+  }
+}

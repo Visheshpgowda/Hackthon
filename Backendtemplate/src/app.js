@@ -3,7 +3,7 @@ import cors from "cors"
 import cookieParser from 'cookie-parser';
 
 const app = express()
-console.log(process);
+
 
 app.use(cors({
     origin: 'http://localhost:5173',  // Explicitly set the origin instead of using env variable for testing
@@ -22,9 +22,12 @@ app.use(cookieParser());
 import healthcheckRouter from "./routes/healthcheck.routes.js"
 import userRouter from "./routes/user.routes.js"
 import studentRouter from "./routes/student.routes.js"
-app.use("/api/v1/healthcheck", healthcheckRouter)
+import teacherRouter from "./routes/teacher.routes.js"
+import timetableRouter from "./routes/timetable.routes.js"
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/students", studentRouter);
+app.use("/api/v1/teachers", teacherRouter);
+app.use("/api/v1/timetable", timetableRouter);
 
 
 
