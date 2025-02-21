@@ -1,7 +1,7 @@
 import express from 'express';
-import {loginUser,} from '../controllers/userControllers/userLogin.controller';
-import { registerUser, } from '../controllers/userControllers/userRegister.controller';
-import { verifyJWT } from '../middlewares/auth.middlewares';
+import { loginUser, logoutUser} from '../controllers/userControllers/userLogin.controller.js';
+import { registerUser, } from '../controllers/userControllers/userRegister.controller.js';
+import { verifyJWT } from '../middlewares/auth.middlewares.js';
 
 const router = express.Router();
 

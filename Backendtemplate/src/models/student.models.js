@@ -29,6 +29,10 @@ const studentSchema = new Schema({
         type: Date,
         required: true,
     },
+    class: {
+        type: String,
+            required: true,
+    },
 
 }, {
     timestamps: true
