@@ -1,18 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Phone, Lock, Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 function Register() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState("Teacher"); // Default role as "Teacher"
+    const [role, setRole] = useState("Teacher");
+    const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log({ username, email, phone, password, role });
+
+        const userData = {
+            name: username,
+            email,
+            Phone_no: phone,
+            password,
+            role
+        };
+
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/users/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setMessage({ type: "success", text: data.message });
+                setTimeout(() => navigate("/login"), 1500);
+            } else {
+                setMessage({ type: "error", text: data.message || "Failed to register." });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: "Network error. Please try again." });
+        }
     };
 
     return (
@@ -26,9 +53,15 @@ function Register() {
                         <h2 className="mt-6 text-4xl font-bold text-gray-900">Create Account</h2>
                     </div>
 
+                    {message && (
+                        <div className={`p-3 rounded-lg text-center ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                            {message.text}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Username */}
-                        <div className="relative">
+                        <div>
                             <label className="block text-base font-medium text-gray-700">Username</label>
                             <input
                                 type="text"
@@ -40,7 +73,7 @@ function Register() {
                         </div>
 
                         {/* Email */}
-                        <div className="relative">
+                        <div>
                             <label className="block text-base font-medium text-gray-700">Email</label>
                             <input
                                 type="email"
@@ -52,7 +85,7 @@ function Register() {
                         </div>
 
                         {/* Phone */}
-                        <div className="relative">
+                        <div>
                             <label className="block text-base font-medium text-gray-700">Phone</label>
                             <input
                                 type="tel"
@@ -64,7 +97,7 @@ function Register() {
                         </div>
 
                         {/* Password */}
-                        <div className="relative">
+                        <div>
                             <label className="block text-base font-medium text-gray-700">Password</label>
                             <input
                                 type="password"
@@ -76,18 +109,14 @@ function Register() {
                         </div>
 
                         {/* Role Selection */}
-                        <div className="relative">
-                            <label className="flex items-center space-x-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={role === "Headmaster"}
-                                    onChange={(e) => setRole(e.target.checked ? "Headmaster" : "Teacher")}
-                                    className="w-5 h-5"
-                                />
-                                <span className="text-base font-medium text-gray-700">
-                                    Register as Headmaster
-                                </span>
-                            </label>
+                        <div className="flex items-center space-x-3">
+                            <input
+                                type="checkbox"
+                                checked={role === "Headmaster"}
+                                onChange={(e) => setRole(e.target.checked ? "Headmaster" : "Teacher")}
+                                className="w-5 h-5"
+                            />
+                            <label className="text-base font-medium text-gray-700">Register as Headmaster</label>
                         </div>
 
                         {/* Submit Button */}
