@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
+import axios from 'axios';
+
 
 function Register() {
     const [username, setUsername] = useState("");
@@ -13,7 +15,7 @@ function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         const userData = {
             name: username,
             email,
@@ -21,24 +23,34 @@ function Register() {
             password,
             role
         };
-
+    
         try {
-            const response = await fetch("http://localhost:8080/api/v1/users/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(userData)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setMessage({ type: "success", text: data.message });
+            const response = await axios.post(
+                "http://localhost:8080/api/v1/users/register", 
+                userData,
+                { 
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": 'application/json'
+                    },
+                }
+            );
+    
+            // Axios automatically parses JSON, so no need for response.json()
+            if (response.status === 200 || response.status === 201) {
+                setMessage({ type: "success", text: response.data.message });
                 setTimeout(() => navigate("/login"), 1500);
             } else {
-                setMessage({ type: "error", text: data.message || "Failed to register." });
+                setMessage({ 
+                    type: "error", 
+                    text: response.data.message || "Failed to register." 
+                });
             }
         } catch (error) {
-            setMessage({ type: "error", text: "Network error. Please try again." });
+            setMessage({ 
+                type: "error", 
+                text: error.response?.data?.message || "Network error. Please try again." 
+            });
         }
     };
 

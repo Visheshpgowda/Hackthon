@@ -3,15 +3,14 @@ import cors from "cors"
 import cookieParser from 'cookie-parser';
 
 const app = express()
+console.log(process);
 
 app.use(cors({
-    origin: [
-        process.env.CORS_ORIGIN
-    ],
+    origin: 'http://localhost:5173',  // Explicitly set the origin instead of using env variable for testing
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Date', 'X-Api-Version']
-}));
+    allowedHeaders: ['Content-Type', 'Authorization']
+})); 
 
 //common middlewares
 app.use(express.json({ limit: "1000kb" }))
