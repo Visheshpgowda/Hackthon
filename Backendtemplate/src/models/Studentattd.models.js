@@ -13,13 +13,12 @@ Schema({
     },
     status: {
         type: String,
-        enum: ['Present', 'Absent', 'Late', 'Excused'],
+        enum: ['true', 'false'],
         required: true
     }
 }, {
     timestamps: true
 });
 
-const StudentAttendance = mongoose.model('StudentAttendance', studentAttendanceSchema);
+export const StudentAttendance = mongoose.model('StudentAttendance', studentAttendanceSchema);
 
-module.exports = StudentAttendance;
