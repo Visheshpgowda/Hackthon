@@ -1,17 +1,13 @@
 import mongoose, { Schema } from "mongoose";
 
-const marksSchema = new Schema({
-    Student_name: {
-        type: Schema.Types.ObjectId,
-        ref: 'Student',
-        required: true
-    },
+const marksSchema = new Schema({ 
     roll_no: {
         type: Number,
         required: true
     },
-    subject: {
-        type: String,
+    Subject_name: {
+        type: Schema.Types.ObjectId,
+        ref: 'Subject',
         required: true
     },
     Exam_type: {
