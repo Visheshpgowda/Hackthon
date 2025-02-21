@@ -17,21 +17,20 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8080/api/v1/users/login', { email, name, password }, { withCredentials: true
-
-             },{
-                headers: {
-                    'Content-Type': 'application/json',
+            const response = await axios.post('http://localhost:8080/api/v1/users/login', 
+                { email, name, password }, 
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": 'application/json'  // Changed from x-www-form-urlencoded since you're sending JSON
+                    },
                 }
-             }
-             );
+            );
             
             setSuccess(response.data.message || "Logged in successfully!");
             console.log("User Data:", response.data.data.user);
-
-            // You can navigate to the dashboard or home page after successful login
-        } catch (err) {
-            setError(err.response?.data?.message || "Failed to log in.");
+        } catch (error) {
+            console.error("Login error:", error);
         } finally {
             setLoading(false);
         }
