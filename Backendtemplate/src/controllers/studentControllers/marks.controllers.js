@@ -1,9 +1,9 @@
-import { Marks } from "../../models/Marks.models";
+import { Marks } from "../../models/Marks.models.js";
 
 export const addMarks = async(req, res) => {
     try {
-        const { Student_name, subject, Exam_type, marks, teacher } = req.body;
-        const marksData = new Marks({ Student_name, subject, Exam_type, marks, teacher });
+        const { roll_no, Subject_name, Exam_type, marks, teacher } = req.body;
+        const marksData = new Marks({ roll_no, Subject_name, Exam_type, marks, teacher });
         await marksData.save();
         res.status(201).json({ marksData });
     } catch (error) {
@@ -13,8 +13,8 @@ export const addMarks = async(req, res) => {
 
 export const getMarksByRollNo = async(req, res) => {
     try {
-        const rollNo = req.params.roll_no;
-        const marks = await Marks.find({ Student_name: rollNo });
+        const roll_no = req.params.roll_no;
+        const marks = await Marks.find({ roll_no });
         res.status(200).json({ marks });
     } catch (error) {
         res.status(404).json({ message: error.message });
@@ -23,8 +23,8 @@ export const getMarksByRollNo = async(req, res) => {
 
 export const getMarksBySubject = async(req, res) => {
     try {
-        const subject = req.params.subject;
-        const marks = await Marks.find({ subject: subject });
+        const Subject_name = req.params.Subject_name;
+        const marks = await Marks.find({ Subject_name });
         res.status(200).json({ marks });
     } catch (error) {
         res.status(404).json({ message: error.message });
@@ -33,12 +33,12 @@ export const getMarksBySubject = async(req, res) => {
 
 export const studentPerformance = async(req, res) => {
     try {
-        const studentId = req.params.studentId;
+        const roll_no = req.params.roll_no;
 
         // Fetch all marks for the student with populated teacher data
-        const marks = await Marks.find({ Student_name: studentId })
+        const marks = await Marks.find({ roll_no })
             .populate('teacher', 'name')
-            .populate('Student_name', 'name')
+            .populate('Subject_name', 'Subject_name')
             .lean();
 
         if (marks.length === 0) {
@@ -46,11 +46,10 @@ export const studentPerformance = async(req, res) => {
         }
 
         // Basic information
-        const studentName = marks[0] ? .Student_name ? .name || "Unknown Student";
-        const rollNo = marks[0] ? .roll_no;
+        const studentRoll = marks[0]?.roll_no || "Unknown";
         const totalEntries = marks.length;
-        const uniqueSubjects = [...new Set(marks.map(m => m.subject))];
-        const uniqueTeachers = [...new Set(marks.map(m => m.teacher ? ._id.toString()))];
+        const uniqueSubjects = [...new Set(marks.map(m => m.Subject_name?._id.toString()))];
+        const uniqueTeachers = [...new Set(marks.map(m => m.teacher?._id.toString()))];
 
         // Overall marks statistics
         const allMarks = marks.map(mark => mark.marks);
@@ -99,8 +98,9 @@ export const studentPerformance = async(req, res) => {
 
         // Subject-wise performance
         const subjectPerformance = {};
-        uniqueSubjects.forEach(subject => {
-            const subjectMarks = marks.filter(mark => mark.subject === subject);
+        uniqueSubjects.forEach(subjectId => {
+            const subjectMarks = marks.filter(mark => mark.Subject_name?._id.toString() === subjectId);
+            const subjectName = subjectMarks[0]?.Subject_name?.Subject_name || "Unknown Subject";
             const subjectAvg = subjectMarks.reduce((sum, mark) => sum + mark.marks, 0) / subjectMarks.length;
             const highestMark = Math.max(...subjectMarks.map(mark => mark.marks));
             const lowestMark = Math.min(...subjectMarks.map(mark => mark.marks));
@@ -111,7 +111,7 @@ export const studentPerformance = async(req, res) => {
             const bestExam = sortedExams[0];
             const worstExam = sortedExams[sortedExams.length - 1];
 
-            subjectPerformance[subject] = {
+            subjectPerformance[subjectName] = {
                 averageMark: subjectAvg.toFixed(2),
                 highestMark,
                 lowestMark,
@@ -120,12 +120,12 @@ export const studentPerformance = async(req, res) => {
                 bestExam: {
                     marks: bestExam.marks,
                     examType: bestExam.Exam_type,
-                    teacher: bestExam.teacher ? .name || 'Unknown'
+                    teacher: bestExam.teacher?.name || 'Unknown'
                 },
                 worstExam: {
                     marks: worstExam.marks,
                     examType: worstExam.Exam_type,
-                    teacher: worstExam.teacher ? .name || 'Unknown'
+                    teacher: worstExam.teacher?.name || 'Unknown'
                 }
             };
         });
@@ -154,16 +154,18 @@ export const studentPerformance = async(req, res) => {
 
         // Calculate improvement/decline between midterm and final
         const subjectProgression = {};
-        uniqueSubjects.forEach(subject => {
-            const midtermForSubject = marks.filter(m => m.subject === subject && m.Exam_type === 'Midterm');
-            const finalForSubject = marks.filter(m => m.subject === subject && m.Exam_type === 'Final');
+        uniqueSubjects.forEach(subjectId => {
+            const subjectMarks = marks.filter(mark => mark.Subject_name?._id.toString() === subjectId);
+            const subjectName = subjectMarks[0]?.Subject_name?.Subject_name || "Unknown Subject";
+            const midtermForSubject = subjectMarks.filter(m => m.Exam_type === 'Midterm');
+            const finalForSubject = subjectMarks.filter(m => m.Exam_type === 'Final');
 
             if (midtermForSubject.length > 0 && finalForSubject.length > 0) {
                 const midtermAvg = midtermForSubject.reduce((sum, m) => sum + m.marks, 0) / midtermForSubject.length;
                 const finalAvg = finalForSubject.reduce((sum, m) => sum + m.marks, 0) / finalForSubject.length;
                 const improvement = finalAvg - midtermAvg;
 
-                subjectProgression[subject] = {
+                subjectProgression[subjectName] = {
                     midtermAverage: midtermAvg.toFixed(2),
                     finalAverage: finalAvg.toFixed(2),
                     improvement: improvement.toFixed(2),
@@ -188,7 +190,7 @@ export const studentPerformance = async(req, res) => {
         // Performance trend over time
         const marksByDate = marks.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
             .map(mark => ({
-                subject: mark.subject,
+                subject: mark.Subject_name?.Subject_name || "Unknown Subject",
                 examType: mark.Exam_type,
                 marks: mark.marks,
                 date: mark.createdAt
@@ -245,9 +247,7 @@ export const studentPerformance = async(req, res) => {
         // Response object with all statistics
         const response = {
             studentInfo: {
-                studentId,
-                studentName,
-                rollNo,
+                roll_no,
                 performanceCategory,
                 overallAverage: avgMark,
                 totalExams: totalEntries
@@ -273,10 +273,10 @@ export const studentPerformance = async(req, res) => {
             suggestions,
             performanceTrend: marksByDate,
             rawData: marks.map(mark => ({
-                subject: mark.subject,
+                subject: mark.Subject_name?.Subject_name || "Unknown Subject",
                 examType: mark.Exam_type,
                 marks: mark.marks,
-                teacher: mark.teacher ? .name || 'Unknown',
+                teacher: mark.teacher?.name || 'Unknown',
                 date: mark.createdAt
             }))
         };
