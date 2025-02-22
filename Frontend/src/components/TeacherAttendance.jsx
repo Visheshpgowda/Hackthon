@@ -8,7 +8,8 @@ import {
   Upload,
   Download,
   Globe,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowLeft
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 
@@ -20,8 +21,8 @@ const TeacherAttendance = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [animateHeader, setAnimateHeader] = useState(true);
-  const [mode, setMode] = useState(""); // "live" or "excel"
+  const [mode, setMode] = useState("");
+  const [error, setError] = useState("");
 
   const classes = [
     { id: "1", name: "10A" },
@@ -35,6 +36,7 @@ const TeacherAttendance = () => {
   const fetchStudents = async () => {
     if (!selectedClass) return;
     setIsLoading(true);
+    setError("");
     try {
       const response = await fetch("http://localhost:8080/api/v1/students/getstudents", {
         method: "POST",
@@ -49,6 +51,7 @@ const TeacherAttendance = () => {
       }), {});
       setAttendance(initialAttendance);
     } catch (error) {
+      setError("Failed to fetch students. Please try again.");
       console.error("Error fetching students:", error);
     }
     setIsLoading(false);
@@ -70,15 +73,13 @@ const TeacherAttendance = () => {
     const template = students.map(student => ({
       'Roll No': student.roll_no,
       'Name': student.name,
-      'Attendance': '',  // Empty column for teachers to fill
+      'Attendance': '',
       'Date': selectedDate.toISOString().split('T')[0]
     }));
 
     const ws = XLSX.utils.json_to_sheet(template);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-    
-    // Save the file
     XLSX.writeFile(wb, `attendance_template_${selectedClass}_${selectedDate.toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -93,7 +94,6 @@ const TeacherAttendance = () => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      // Convert Excel data to attendance format
       const attendanceData = jsonData.reduce((acc, row) => {
         const student = students.find(s => s.roll_no === row['Roll No']);
         if (student) {
@@ -111,6 +111,7 @@ const TeacherAttendance = () => {
 
   const submitAttendance = async (attendanceData = attendance) => {
     setIsSubmitting(true);
+    setError("");
     try {
       const formattedDate = selectedDate.toISOString().split('T')[0];
       const data = {
@@ -131,26 +132,44 @@ const TeacherAttendance = () => {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
+      setError("Failed to submit attendance. Please try again.");
       console.error("Error submitting attendance:", error);
     }
     setIsSubmitting(false);
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6 opacity-0 animate-[fadeIn_0.5s_ease-in-out_forwards]">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className={`p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50`}>
-          <div className="flex items-center space-x-2">
-            <Users className="w-6 h-6 text-blue-500" />
-            <h2 className="text-2xl font-bold text-gray-800">Enter Student Attendance</h2>
+        <div className="border-b bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Users className="w-6 h-6 text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-800">Student Attendance</h1>
+            </div>
+            {mode && (
+              <button
+                onClick={() => setMode("")}
+                className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </button>
+            )}
           </div>
         </div>
         
         <div className="p-6 space-y-6">
-          {/* Class Selection */}
+          {error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2">
+              <XCircle className="w-5 h-5" />
+              {error}
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-4">
             <select 
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={(e) => setSelectedClass(e.target.value)}
               value={selectedClass}
             >
@@ -163,7 +182,7 @@ const TeacherAttendance = () => {
             <button 
               onClick={fetchStudents}
               disabled={!selectedClass || isLoading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
             >
               {isLoading ? (
                 <>
@@ -174,51 +193,54 @@ const TeacherAttendance = () => {
             </button>
           </div>
 
-          {/* Mode Selection */}
           {selectedClass && students.length > 0 && !mode && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <button
                 onClick={() => setMode("live")}
-                className="p-6 border rounded-lg hover:border-blue-500 transition-all duration-300 flex flex-col items-center gap-3"
+                className="p-8 border-2 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-300 flex flex-col items-center gap-4 group"
               >
-                <Globe className="w-8 h-8 text-blue-500" />
-                <span className="font-medium">Mark Live Attendance</span>
+                <Globe className="w-12 h-12 text-blue-600 group-hover:scale-110 transition-transform" />
+                <div className="text-center">
+                  <div className="font-semibold text-lg mb-1">Mark Live Attendance</div>
+                  <div className="text-sm text-gray-600">Take attendance in real-time</div>
+                </div>
               </button>
               <button
                 onClick={() => setMode("excel")}
-                className="p-6 border rounded-lg hover:border-blue-500 transition-all duration-300 flex flex-col items-center gap-3"
+                className="p-8 border-2 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all duration-300 flex flex-col items-center gap-4 group"
               >
-                <FileSpreadsheet className="w-8 h-8 text-green-500" />
-                <span className="font-medium">Upload Excel File</span>
+                <FileSpreadsheet className="w-12 h-12 text-green-600 group-hover:scale-110 transition-transform" />
+                <div className="text-center">
+                  <div className="font-semibold text-lg mb-1">Upload Excel File</div>
+                  <div className="text-sm text-gray-600">Import attendance from Excel</div>
+                </div>
               </button>
             </div>
           )}
 
-          {/* Date Selection */}
           {mode && (
-            <div className="flex items-center gap-4">
-              <CalendarIcon className="w-5 h-5 text-gray-500" />
+            <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+              <CalendarIcon className="w-5 h-5 text-gray-600" />
               <input
                 type="date"
                 value={selectedDate.toISOString().split('T')[0]}
                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               />
             </div>
           )}
 
-          {/* Excel Mode */}
           {mode === "excel" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <button
                 onClick={downloadTemplate}
-                className="w-full px-4 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full px-4 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-3 font-medium"
               >
                 <Download className="w-5 h-5" />
-                Download Template
+                Download Attendance Template
               </button>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-all duration-300">
                 <input
                   type="file"
                   accept=".xlsx,.xls"
@@ -228,36 +250,38 @@ const TeacherAttendance = () => {
                 />
                 <label
                   htmlFor="file-upload"
-                  className="cursor-pointer flex flex-col items-center gap-2"
+                  className="cursor-pointer flex flex-col items-center gap-3"
                 >
-                  <Upload className="w-8 h-8 text-gray-400" />
-                  <span className="text-sm text-gray-600">Click to upload attendance file</span>
+                  <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                    <Upload className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <span className="font-medium text-gray-800">Upload Attendance File</span>
+                  <span className="text-sm text-gray-600">Click to select your Excel file</span>
                 </label>
               </div>
             </div>
           )}
 
-          {/* Live Attendance Mode */}
           {mode === "live" && students.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex gap-2 justify-end">
+            <div className="space-y-6">
+              <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => markAll(true)}
-                  className="px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-all duration-300 flex items-center"
+                  className="px-4 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-all duration-300 flex items-center font-medium"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Mark All Present
                 </button>
                 <button
                   onClick={() => markAll(false)}
-                  className="px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-all duration-300 flex items-center"
+                  className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-all duration-300 flex items-center font-medium"
                 >
                   <XCircle className="w-4 h-4 mr-2" />
                   Mark All Absent
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {students.map((student) => (
                   <div
                     key={student._id}
@@ -265,7 +289,7 @@ const TeacherAttendance = () => {
                   >
                     <div>
                       <p className="font-medium text-gray-900">{student.name}</p>
-                      <p className="text-sm text-gray-500">Roll No: {student.roll_no}</p>
+                      <p className="text-sm text-gray-600">Roll No: {student.roll_no}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -274,8 +298,8 @@ const TeacherAttendance = () => {
                         onChange={() => handleAttendanceChange(student._id)}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      <span className="ml-3 text-sm font-medium text-gray-900">
+                      <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                      <span className={`ml-3 text-sm font-medium ${attendance[student._id] ? 'text-green-600' : 'text-red-600'}`}>
                         {attendance[student._id] ? 'Present' : 'Absent'}
                       </span>
                     </label>
@@ -286,11 +310,11 @@ const TeacherAttendance = () => {
               <button
                 onClick={() => submitAttendance()}
                 disabled={isSubmitting}
-                className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-4 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     Submitting...
                   </>
                 ) : "Submit Attendance"}
@@ -301,7 +325,7 @@ const TeacherAttendance = () => {
       </div>
 
       {showSuccess && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-[slideIn_0.3s_ease-out]">
           <CheckCircle className="w-5 h-5" />
           Attendance submitted successfully!
         </div>
