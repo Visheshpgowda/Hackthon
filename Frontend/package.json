@@ -21,6 +21,7 @@
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
+    "react-datepicker": "^8.1.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0",
     "react-select": "^5.10.0",

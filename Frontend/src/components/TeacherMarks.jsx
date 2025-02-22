@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css'; 
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 const TeacherMarks = () => {
   // Core state
@@ -12,12 +14,17 @@ const TeacherMarks = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittingRecords, setSubmittingRecords] = useState({});
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Data state with better structure
   const [marksState, setMarksState] = useState({
     // Structure: { studentId: { subjectName: { value: number, status: 'new'|'submitted'|'edited'|'editing', originalValue: number } } }
     marksData: {}
   });
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   const [examTypes] = useState(['Unit Test', 'Mid Term', 'Final Term']);
   const [subjectsByStudent, setSubjectsByStudent] = useState({});
@@ -249,41 +256,51 @@ const TeacherMarks = () => {
   // Submit a single mark record
   const handleSubmitRecord = async (studentId, subject) => {
     // Validation checks
-    if (!selectedExamType) {
-      toast.error('Please select an exam type');
-      return;
+    const validationChecks = [
+      { condition: !selectedExamType, message: 'Please select an exam type' },
+      { condition: !selectedClass, message: 'Please select a class' },
+      { condition: !selectedDate, message: 'Please select a date' }
+    ];
+  
+    // Check all validations
+    for (const check of validationChecks) {
+      if (check.condition) {
+        toast.error(check.message);
+        return;
+      }
     }
-
-    if (!selectedClass) {
-      toast.error('Please select a class');
-      return;
-    }
-    
+      
     // Validate the mark record
     const markToSubmit = validateMark(studentId, subject);
     if (!markToSubmit) return; // Validation failed
-    
+      
     // Set loading state for this record
-    setSubmittingRecords(prev => ({ ...prev, [`${studentId}-${subject}`]: true }));
-    
+    const recordKey = `${studentId}-${subject}`;
+    setSubmittingRecords(prev => ({ 
+      ...prev, 
+      [recordKey]: true 
+    }));
+      
     try {
       const student = students.find(s => s._id === studentId);
+      
       const payload = {
         studentId,
         roll_no: student.roll_no,
         subjectName: subject,
         Exam_type: selectedExamType,
         marks: markToSubmit.marks,
-        class: selectedClass.value
+        class: selectedClass.value,
+        date: selectedDate
       };
-      
+        
       await axiosInstance.post('/students/addMarks', payload);
       toast.success(`Successfully submitted marks for ${student.name} in ${subject}`);
-      
+        
       // Update mark status to 'submitted'
       setMarksState(prev => {
         const updatedMarksData = {...prev.marksData};
-        
+          
         if (updatedMarksData[studentId]?.[subject]) {
           updatedMarksData[studentId][subject] = {
             value: markToSubmit.marks.toString(),
@@ -291,17 +308,20 @@ const TeacherMarks = () => {
             originalValue: markToSubmit.marks.toString()
           };
         }
-        
+          
         return {
           ...prev,
           marksData: updatedMarksData
         };
       });
-      
+        
     } catch (error) {
       handleError(error);
     } finally {
-      setSubmittingRecords(prev => ({ ...prev, [`${studentId}-${subject}`]: false }));
+      setSubmittingRecords(prev => ({ 
+        ...prev, 
+        [recordKey]: false 
+      }));
     }
   };
 
@@ -340,6 +360,11 @@ const TeacherMarks = () => {
   // Submit all marks
   const handleSubmitAllMarks = async () => {
     // Validation checks
+    if (!selectedDate) {
+      toast.error('Please select a date');
+      return;
+    }
+
     if (!selectedExamType) {
       toast.error('Please select an exam type');
       return;
@@ -370,7 +395,8 @@ const TeacherMarks = () => {
           subjectName: subject,
           Exam_type: selectedExamType,
           marks,
-          class: selectedClass.value
+          class: selectedClass.value,
+          date: selectedDate // Added date to payload
         };
         
         return axiosInstance.post('/students/addMarks', payload);
@@ -490,6 +516,18 @@ const TeacherMarks = () => {
               ))}
             </select>
           </div>
+          <div className="w-64">
+  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+  <DatePicker
+    selected={selectedDate}
+    onChange={date => setSelectedDate(date)}
+    className="w-full border border-gray-300 rounded-md p-2"
+    dateFormat="MMMM d, yyyy"
+    maxDate={new Date()} // This prevents selection of future dates
+    disabled={loading || submitting}
+    placeholderText="Select date"
+  />
+</div>
         </div>
 
         {loading && (

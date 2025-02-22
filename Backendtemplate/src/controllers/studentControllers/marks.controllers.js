@@ -1,56 +1,115 @@
 import { Marks } from "../../models/Marks.models.js";
-export const addMarks = async (req, res) => {
-    try {
-      const { studentId, roll_no, subjectName, Exam_type: examType, marks, class: className } = req.body;
-      
-      const teacherId = req.user._id;
-        console.log(studentId, roll_no, subjectName, examType, marks, className, teacherId);
-      console.log(req.body);
 
-        
-      // Validate required fields
-      if (!studentId || !roll_no || !subjectName || !examType || !marks || !className) {
-        return res.status(400).json({
-          success: false,
-          message: 'All fields are required'
-        });
-      }
-  
-      // Validate marks range
-      if (marks < 0 || marks > 100) {
-        return res.status(400).json({
-          success: false,
-          message: 'Marks must be between 0 and 100'
-        });
-      }
-  
+export const addMarks = async (req, res) => {
+  try {
+    const { 
+      studentId, 
+      roll_no, 
+      subjectName, 
+      Exam_type: examType, 
+      marks, 
+      class: className,
+      date 
+    } = req.body;
+    
+    const teacherId = req.user?._id;
+
+    // Validate required fields
+    if (!studentId || !roll_no || !subjectName || !examType || !marks || !className || !date) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    // Validate marks range
+    if (marks < 0 || marks > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Marks must be between 0 and 100'
+      });
+    }
+
+    // Check if marks already exist for this student, subject, exam type and date
+    const existingMarks = await Marks.findOne({
+      studentId,
+      subjectName,
+      examType,
+      date: new Date(date),
+      class: className
+    });
+
+    let marksEntry;
+
+    if (existingMarks) {
+      // Update existing marks
+      existingMarks.marks = marks;
+      existingMarks.roll_no = roll_no;
+      if (teacherId) existingMarks.teacherId = teacherId;
+      
+      marksEntry = await existingMarks.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Marks updated successfully',
+        data: marksEntry
+      });
+    } else {
       // Create new marks entry
-      const marksEntry = new Marks({
+      marksEntry = new Marks({
         studentId,
         roll_no,
         subjectName,
         examType,
         marks,
         class: className,
-        teacherId
+        teacherId,
+        date: new Date(date)
       });
-  
+
       await marksEntry.save();
-  
+
       res.status(201).json({
         success: true,
         message: 'Marks added successfully',
         data: marksEntry
       });
-  
-    } catch (error) {
-      console.error('Error in addMarks:', error);
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Error while adding marks'
-      });
     }
-  };
+
+  } catch (error) {
+    console.error('Error in addMarks:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error while adding marks'
+    });
+  }
+};
+
+// New endpoint to fetch existing marks
+export const getExistingMarks = async (req, res) => {
+  try {
+    const { studentId, subjectName, examType, date, className } = req.query;
+
+    const existingMarks = await Marks.findOne({
+      studentId,
+      subjectName,
+      examType,
+      date: new Date(date),
+      class: className
+    });
+
+    res.status(200).json({
+      success: true,
+      data: existingMarks
+    });
+  } catch (error) {
+    console.error('Error in getExistingMarks:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error while fetching marks'
+    });
+  }
+};
 
 export const getMarksByRollNo = async(req, res) => {
     try {

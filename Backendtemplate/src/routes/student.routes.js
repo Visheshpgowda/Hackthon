@@ -1,5 +1,5 @@
 import express from 'express';
-import { addMarks } from '../controllers/studentControllers/marks.controllers.js';
+import { addMarks, getExistingMarks } from '../controllers/studentControllers/marks.controllers.js';
 import { addStudent } from '../controllers/studentControllers/addStudent.controllers.js';
 import { getStudentListByClass } from '../controllers/studentControllers/studentListByClass.controllers.js';
 import { verifyJWT } from '../middlewares/auth.middlewares.js';
@@ -12,6 +12,7 @@ const router = express.Router();
 router.post('/addStudent', addStudent); 
 // router.post('/addMarks', addMarks);  
 router.route('/addMarks').post(verifyJWT, addMarks); 
+router.route('/getExistingMarks').get(verifyJWT, getExistingMarks);
 router.post('/getStudentListByClass', getStudentListByClass);
 router.get('/getEnrolledSubjects/:studentId', getEnrolledSubjects); 
 
