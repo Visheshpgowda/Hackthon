@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { 
   UserCircle, ClipboardList, BookOpen, LineChart,
   GraduationCap, LogOut, Menu, X, AlertCircle,
-  CheckCircle, Loader2, Speaker
+  CheckCircle, Loader2, Speaker,
+  Bot
 } from 'lucide-react';
 
 const Toast = ({ message, type, onClose }) => (
@@ -29,7 +30,8 @@ const NavBar = () => {
     { path: '/teacher/marks', icon: LineChart, label: 'Marks' },
     { path: '/teacher/lessonPlan', icon: BookOpen, label: 'Plan' },
     { path: '/teacher/studentPerformance', icon: GraduationCap, label: 'Student' },
-    { path: '/teacher/announcements', icon: Speaker, label: 'Announcements' }
+    { path: '/teacher/announcements', icon: Speaker, label: 'Announcements' },
+    { path: '/teacher/chatbot', icon: Bot, label: 'Chatbot'}
   ];
 
   useEffect(() => {

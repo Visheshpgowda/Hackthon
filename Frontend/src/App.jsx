@@ -22,6 +22,7 @@ import ViewAttendance from './components/ViewAttendance.jsx'
 import AttendanceReport from './components/AttendanceReport.jsx';
 import Announcements from './components/TeacherAnnouncement.jsx';
 import LandingPage from './components/LandingPage.jsx'
+import TeacherBot from './components/TeacherBot.jsx';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="lessonPlan" element={<TeacherLessonPlan/>}/>
           <Route path='studentPerformance' element={<StudentListManager/>}/>
           <Route path='upcomingExams' element={<TeacherUpcomingExams/>}/>
+          <Route path='chatbot' element={<TeacherBot/>}/>
           <Route path='Announcements' element={<Announcements/>}/>
         </Route>
         <Route path="/hm" element={<HMDashboard />}>
